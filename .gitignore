@@ -1,0 +1,17 @@
+# Node dependencies
+node_modules/
+
+# Production builds
+dist/
+
+# Private environment variables & API credentials
+.env
+.env.local
+.env.*
+
+# OS Metadata
+.DS_Store
+
+# IDE configuration
+.vscode/
+.idea/
