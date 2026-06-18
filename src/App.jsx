@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Configure dynamic API base URL for cross-origin backend connectivity (e.g. Vercel + Render)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (window.location.port ? 'http://localhost:5001' : window.location.origin);
+let base = import.meta.env.VITE_API_BASE_URL || (window.location.port ? 'http://localhost:5001' : window.location.origin);
+if (window.location.protocol === 'https:' && base.startsWith('http://')) {
+  base = base.replace('http://', 'https://');
+}
+const API_BASE_URL = base;
 
 function App() {
   // Brand Configuration
