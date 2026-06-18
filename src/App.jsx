@@ -264,8 +264,8 @@ function App() {
         
         {/* Sticky Top Navbar */}
         <nav className="navbar">
-          <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
-            <div className="nav-logo">⚡</div>
+          <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <img src="/logo.png" alt="Synapse Logo" style={{ height: '28px', width: '28px', borderRadius: '4px', objectFit: 'cover' }} />
             <span className="nav-brand-text">{brandName}</span>
           </div>
           
@@ -558,8 +558,8 @@ function App() {
           <span className="nav-brand-text" style={{ color: 'var(--text-secondary)' }}>Back to Home</span>
         </div>
         
-        <div className="nav-brand" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          <div className="nav-logo">⚡</div>
+        <div className="nav-brand" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src="/logo.png" alt="Synapse Logo" style={{ height: '24px', width: '24px', borderRadius: '4px', objectFit: 'cover' }} />
           <span className="nav-brand-text">{brandName} Control Room</span>
         </div>
 
