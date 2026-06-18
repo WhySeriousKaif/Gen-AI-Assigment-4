@@ -91,8 +91,16 @@ To achieve this, identify the "Name" (usually labeled "Username" on this page) a
   broadcastSSE({ type: 'log', message: `[Server] Parameters: Engine=${provider || 'openai'}, Model=${model || 'gpt-4o-mini'}, MaxSteps=${stepLimit}` });
   broadcastSSE({ type: 'log', message: `[Server] Task Loaded: "${finalObjective.slice(0, 100)}${finalObjective.length > 100 ? '...' : ''}"` });
 
-  runAgentLoop(destinationUrl, finalObjective, provider, model, apiKey, stepLimit, (update) => {
-    broadcastSSE(update);
+  runAgentLoop({
+    targetUrl: destinationUrl,
+    objective: finalObjective,
+    provider,
+    modelSelected: model,
+    apiKeySelected: apiKey,
+    maxSteps: stepLimit,
+    onStepUpdate: (update) => {
+      broadcastSSE(update);
+    }
   }).catch((err) => {
     console.error("[Server] Critical Agent execution failure:", err);
     broadcastSSE({ type: 'status', status: 'failed', error: err.message });

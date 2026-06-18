@@ -130,92 +130,28 @@ export function requestAgentTermination() {
  * @param {number|Function} [maxStepsOrCallback] User max execution steps or callback.
  * @param {Function} [onStepUpdateCallback] Callback to stream the logs & screenshots back to Express.
  */
-export async function runAgentLoop(
+/**
+ * Runs the intelligent AI Agent Loop to automate the target web page.
+ * Uses a clean, destructured options object representing the modern Agent SDK style.
+ * 
+ * --- COURSE CONCEPTS MAP ---
+ * 1. Agent Lifecycle (Topic 7) - Start, execute reasoning steps, and teardown cleanly.
+ * 2. Reasoning + Tool Calling Loop (Topic 3) - Iterative perception, thought, action planning.
+ * 3. Observability & Tracing (Topic 8) - Stream logs and screenshots back to the UI console.
+ */
+export async function runAgentLoop({
   targetUrl,
-  objectiveOrName,
-  descInputOrProvider,
-  providerOrCallback,
-  model,
-  customApiKey,
-  maxStepsOrCallback,
-  onStepUpdateCallback
-) {
-  console.log("[runAgentLoop] Arguments received:", {
-    targetUrl,
-    objectiveOrName,
-    descInputOrProvider,
-    providerOrCallback,
-    model,
-    customApiKey,
-    maxStepsOrCallback,
-    onStepUpdateCallback
-  });
-
-  // 10,000 IQ Dynamic Type-Scanning Parameter Resolver
-  let objective = objectiveOrName;
-  let provider = 'openai';
-  let modelSelected = 'gpt-4o-mini';
-  let apiKeySelected = '';
-  let maxSteps = 15;
-  let onStepUpdate = (() => {});
-
-  // 1. Dynamic Callback Function scan
-  for (let i = 0; i < arguments.length; i++) {
-    if (typeof arguments[i] === 'function') {
-      onStepUpdate = arguments[i];
-      break;
-    }
-  }
-
-  // 2. Dynamic Provider Scan
-  for (let i = 0; i < arguments.length; i++) {
-    if (typeof arguments[i] === 'string' && ['openai', 'gemini'].includes(arguments[i].toLowerCase())) {
-      provider = arguments[i].toLowerCase();
-      break;
-    }
-  }
-
-  // 3. Dynamic Model Scan
-  for (let i = 0; i < arguments.length; i++) {
-    if (typeof arguments[i] === 'string' && (arguments[i].startsWith('gpt-') || arguments[i].startsWith('gemini-'))) {
-      modelSelected = arguments[i];
-      break;
-    }
-  }
-
-  // 4. Dynamic API Key Scan
-  for (let i = 0; i < arguments.length; i++) {
-    if (typeof arguments[i] === 'string' && (arguments[i].startsWith('sk-') || arguments[i].startsWith('AIzaSy'))) {
-      apiKeySelected = arguments[i];
-      break;
-    }
-  }
-
-  // 5. Dynamic Steps Budget Scan
-  for (let i = 0; i < arguments.length; i++) {
-    const val = parseInt(arguments[i]);
-    if (typeof arguments[i] === 'number') {
-      maxSteps = arguments[i];
-    } else if (typeof arguments[i] === 'string' && !isNaN(val) && val >= 5 && val <= 30) {
-      maxSteps = val;
-    }
-  }
-
-  // 6. Dynamic Form Legacy Mode prompt assembler
-  const isLegacyMode = typeof descInputOrProvider === 'string' && 
-                       !['openai', 'gemini'].includes(descInputOrProvider.toLowerCase()) &&
-                       descInputOrProvider.length > 0;
-
-  if (isLegacyMode) {
-    objective = `Your target is to fill out the form on this page with these parameters:
-- Target Name/Username to type: "${objectiveOrName}"
-- Target Description/Bio to type: "${descInputOrProvider}"
-
-To achieve this, identify the "Name" (usually labeled "Username" on this page) and "Description" (usually labeled "Bio") fields, click each to focus it, use "send_keys" to input the text, and click the submit or "Update profile" button to submit the form.`;
-  }
+  objective,
+  provider = 'openai',
+  modelSelected = 'gpt-4o-mini',
+  apiKeySelected = '',
+  maxSteps = 15,
+  onStepUpdate = () => {}
+}) {
   const log = (msg) => {
     const timestamp = new Date().toLocaleTimeString();
     console.log(`[AgentLoop] [${timestamp}] ${msg}`);
+    // Tracing/Observability: Stream telemetry logs back to frontend SSE channel (Topic 8)
     onStepUpdate({ type: 'log', message: `[${timestamp}] ${msg}` });
   };
 
