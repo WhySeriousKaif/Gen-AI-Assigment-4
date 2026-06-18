@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// Configure dynamic API base URL for cross-origin backend connectivity (e.g. Vercel + Render)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (window.location.port ? 'http://localhost:5001' : window.location.origin);
+
 function App() {
   // Brand Configuration
   const brandName = "Synapse";
@@ -110,7 +113,7 @@ function App() {
 
   // SSE telemetry subscription channel
   useEffect(() => {
-    const streamUrl = window.location.port ? 'http://localhost:5001/api/stream' : '/api/stream';
+    const streamUrl = `${API_BASE_URL}/api/stream`;
     console.log(`[Synapse] Connecting SSE stream to: ${streamUrl}`);
     
     const eventSource = new EventSource(streamUrl);
@@ -181,7 +184,7 @@ function App() {
     setLatency('142ms');
     setApiCost('$0.02');
 
-    const runUrl = window.location.port ? 'http://localhost:5001/api/run' : '/api/run';
+    const runUrl = `${API_BASE_URL}/api/run`;
     try {
       const res = await fetch(runUrl, {
         method: 'POST',
@@ -218,7 +221,7 @@ function App() {
 
     setLogs((prev) => [...prev, "[Synapse] Sending manual termination request to engine..."]);
 
-    const terminateUrl = window.location.port ? 'http://localhost:5001/api/terminate' : '/api/terminate';
+    const terminateUrl = `${API_BASE_URL}/api/terminate`;
     try {
       const res = await fetch(terminateUrl, { method: 'POST' });
       const data = await res.json();
