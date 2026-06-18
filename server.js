@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { runAgentLoop, requestAgentTermination } from './agentLoop.js';
 
@@ -127,13 +128,24 @@ app.post('/api/terminate', (req, res) => {
   });
 });
 
-// Serve frontend React static assets in production
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// Fallback to React index.html for modern SPA routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+// Serve frontend React static assets in production if available
+const distPath = path.join(__dirname, 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  // Split deployment fallback: return helpful JSON message
+  app.get('*', (req, res) => {
+    res.status(200).json({
+      success: true,
+      message: "Synapse Web Automation Agent Backend is active and online.",
+      environment: "Render Containerized Docker Service",
+      actionRequired: "Connect this service's base URL to your Vercel frontend VITE_API_BASE_URL environment variable."
+    });
+  });
+}
 
 // Launch server listener
 app.listen(PORT, () => {
