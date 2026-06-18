@@ -203,10 +203,23 @@ export async function runAgentLoop({
         ? actionHistory.map(h => `Step ${h.step}: Thought: "${h.thought}" -> Action: ${h.action}${h.args ? ' ' + JSON.stringify(h.args) : ''}`).join('\n')
         : "No actions taken yet.";
 
+      // Self-Correction Loop Prevention Feedback (Topic 3: Agent failure modes / loop detection)
+      let loopWarningText = "";
+      if (actionHistory.length >= 1) {
+        const last = actionHistory[actionHistory.length - 1];
+        if (last.action === 'click_on_screen') {
+          loopWarningText = `\n⚠️ NOTICE: Your last action was click_on_screen at (${last.args?.x}, ${last.args?.y}). If the page did not change or navigate, DO NOT click there again. Click a different coordinate or element, scroll, or choose an alternate action.`;
+        } else if (last.action === 'send_keys') {
+          loopWarningText = `\n⚠️ NOTICE: Your last action was typing "${last.args?.text}". If the text is entered but not submitted, look for a search/submit button to click or press Enter.`;
+        }
+      }
+
       // 2. Query selected LLM model for visual decision
       const prompt = `
 You are an advanced Browser Automation Agent. Your objective on the current web page is:
 "${objective}"
+
+${loopWarningText}
 
 To achieve this, look at the screenshot and use the extracted list of visible elements below to plan your next action.
 You must click focusable elements to focus/select them, and then use "send_keys" to input text.
