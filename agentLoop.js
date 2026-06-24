@@ -250,126 +250,57 @@ ${elementsListText}
 }
 `;
 
-      let responseText = '';
-      if (provider === 'openai') {
-        const keyToUse = apiKeySelected || process.env.OPENAI_API_KEY;
-        if (!keyToUse) {
-          throw new Error("OpenAI API Key is missing. Please enter your key in the cockpit or set OPENAI_API_KEY.");
-        }
-
-        log(`Calling OpenAI ${modelSelected} multimodal to analyze page state...`);
-        const openaiInstance = new OpenAI({ apiKey: keyToUse });
-        
-        let response;
-        let attempts = 0;
-        const maxAttempts = 3;
-        while (attempts < maxAttempts) {
-          try {
-            response = await openaiInstance.chat.completions.create({
-              model: modelSelected,
-              messages: [
-                {
-                  role: 'system',
-                  content: 'You are a precise browser controller. You always respond in raw JSON.'
-                },
-                {
-                  role: 'user',
-                  content: [
-                    { type: 'text', text: prompt },
-                    {
-                      type: 'image_url',
-                      image_url: {
-                        url: `data:image/png;base64,${screenshotBase64}`,
-                        detail: 'low'
-                      }
-                    }
-                  ]
-                }
-              ],
-              response_format: { type: "json_object" },
-              temperature: 0.1
-            });
-            break; // Success!
-          } catch (err) {
-            attempts++;
-            if ((err.status === 429 || err.message.includes('429')) && attempts < maxAttempts) {
-              const retryAfter = 3 + attempts * 2;
-              log(`⚠️ OpenAI Rate limit hit (429). Retrying in ${retryAfter} seconds (Attempt ${attempts}/${maxAttempts})...`);
-              await new Promise(r => setTimeout(r, retryAfter * 1000));
-            } else {
-              throw err;
-            }
-          }
-        }
-        responseText = response.choices[0].message.content;
-      } else if (provider === 'gemini') {
-        const keyToUse = apiKeySelected || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-        if (!keyToUse) {
-          throw new Error("Gemini API Key is missing. Please enter your key in the cockpit or set GOOGLE_API_KEY.");
-        }
-
-        log(`Calling Google Gemini ${modelSelected} multimodal to analyze page state...`);
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelSelected}:generateContent?key=${keyToUse}`;
-        
-        let data;
-        let attempts = 0;
-        const maxAttempts = 3;
-        while (attempts < maxAttempts) {
-          try {
-            const response = await fetch(geminiUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                contents: [
-                  {
-                    parts: [
-                      {
-                        text: prompt + "\n\nCRITICAL: You MUST respond with a valid raw JSON object matching the requested schema. Do not enclose in ```json or markdown markup."
-                      },
-                      {
-                        inlineData: {
-                          mimeType: "image/png",
-                          data: screenshotBase64
-                        }
-                      }
-                    ]
-                  }
-                ],
-                generationConfig: {
-                  responseMimeType: "application/json",
-                  temperature: 0.1
-                }
-              })
-            });
-
-            if (!response.ok) {
-              const errText = await response.text();
-              throw new Error(`Gemini API Request failed: ${response.status} - ${errText}`);
-            }
-
-            data = await response.json();
-            break; // Success!
-          } catch (err) {
-            attempts++;
-            if ((err.message.includes('429') || err.message.includes('quota') || err.message.includes('503')) && attempts < maxAttempts) {
-              const retryAfter = 5 + attempts * 3;
-              log(`⚠️ Gemini Rate limit/busy (503/429) hit. Retrying in ${retryAfter} seconds (Attempt ${attempts}/${maxAttempts})...`);
-              await new Promise(r => setTimeout(r, retryAfter * 1000));
-            } else {
-              throw err;
-            }
-          }
-        }
-
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-          throw new Error("Malformed response received from Gemini API.");
-        }
-        responseText = data.candidates[0].content.parts[0].text;
-      } else {
-        throw new Error(`Unsupported AI provider: ${provider}`);
+      const keyToUse = apiKeySelected || process.env.OPENAI_API_KEY;
+      if (!keyToUse) {
+        throw new Error("OpenAI API Key is missing. Please enter your key in the cockpit or set OPENAI_API_KEY.");
       }
+
+      const modelToUse = modelSelected || 'gpt-4o-mini';
+      log(`Calling OpenAI ${modelToUse} multimodal to analyze page state...`);
+      const openaiInstance = new OpenAI({ apiKey: keyToUse });
+
+      let response;
+      let attempts = 0;
+      const maxAttempts = 3;
+      while (attempts < maxAttempts) {
+        try {
+          response = await openaiInstance.chat.completions.create({
+            model: modelToUse,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a precise browser controller. You always respond in raw JSON.'
+              },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompt },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/png;base64,${screenshotBase64}`,
+                      detail: 'low'
+                    }
+                  }
+                ]
+              }
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.1
+          });
+          break;
+        } catch (err) {
+          attempts++;
+          if ((err.status === 429 || err.message.includes('429')) && attempts < maxAttempts) {
+            const retryAfter = 3 + attempts * 2;
+            log(`⚠️ OpenAI Rate limit hit (429). Retrying in ${retryAfter} seconds (Attempt ${attempts}/${maxAttempts})...`);
+            await new Promise(r => setTimeout(r, retryAfter * 1000));
+          } else {
+            throw err;
+          }
+        }
+      }
+      const responseText = response.choices[0].message.content;
 
       // Clean up markdown formatting if present
       let cleanText = responseText.trim();
@@ -469,8 +400,8 @@ ${elementsListText}
                          error.message.includes('RESOURCE_EXHAUSTED') || 
                          error.message.includes('overloaded');
                          
-    const finalError = isHighDemand 
-      ? `${displayError} (⚠️ Model is experiencing high demand or rate limits. Please try selecting a different AI Engine or Model in the Brain Configuration and launching again!)`
+    const finalError = isHighDemand
+      ? `${displayError} (⚠️ OpenAI is experiencing high demand or rate limits. Please try again in a few minutes or switch to gpt-4o-mini in Brain Configuration.)`
       : displayError;
 
     log(`❌ Fatal Agent Error: ${finalError}`);

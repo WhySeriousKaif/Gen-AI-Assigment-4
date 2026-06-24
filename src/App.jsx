@@ -25,7 +25,6 @@ function App() {
   const [objective, setObjective] = useState("Locate the YouTube search bar, click on it, type 'lofi hip hop radio - beats to relax/study to', hit enter, click on the first live stream video in the results to open it, and then call finish.");
   
   // Custom Brain Configuration states
-  const [provider, setProvider] = useState('openai'); // 'openai' | 'gemini'
   const [model, setModel] = useState('gpt-4o-mini');
   const [apiKey, setApiKey] = useState('');
   
@@ -199,7 +198,7 @@ function App() {
           name,
           description,
           objective,
-          provider,
+          provider: 'openai',
           model,
           apiKey,
           targetUrl,
@@ -720,28 +719,8 @@ function App() {
                 </h4>
                 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {/* Provider Choice */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                    <label style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>AI Engine</label>
-                    <select
-                      className="form-input"
-                      style={{ padding: '0.3rem 0.45rem', fontSize: '0.7rem', height: 'auto', background: 'var(--bg-black)' }}
-                      value={provider}
-                      onChange={(e) => {
-                        const nextProvider = e.target.value;
-                        setProvider(nextProvider);
-                        setModel(nextProvider === 'openai' ? 'gpt-4o-mini' : 'gemini-2.5-flash');
-                      }}
-                      disabled={status === 'running'}
-                    >
-                      <option value="openai">OpenAI GPT</option>
-                      <option value="gemini">Google Gemini</option>
-                    </select>
-                  </div>
-
-                  {/* Model Choice */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                    <label style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>Brain Model</label>
+                    <label style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>OpenAI Model</label>
                     <select
                       className="form-input"
                       style={{ padding: '0.3rem 0.45rem', fontSize: '0.7rem', height: 'auto', background: 'var(--bg-black)' }}
@@ -749,18 +728,8 @@ function App() {
                       onChange={(e) => setModel(e.target.value)}
                       disabled={status === 'running'}
                     >
-                      {provider === 'openai' ? (
-                        <>
-                          <option value="gpt-4o-mini">gpt-4o-mini</option>
-                          <option value="gpt-4o">gpt-4o</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-                          <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-                          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-                        </>
-                      )}
+                      <option value="gpt-4o-mini">gpt-4o-mini (default)</option>
+                      <option value="gpt-4o">gpt-4o</option>
                     </select>
                   </div>
                 </div>
@@ -768,13 +737,13 @@ function App() {
                 {/* API Key Input */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                   <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: 'var(--text-secondary)' }}>
-                    <span>Custom API Credentials</span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.55rem' }}>(optional, falls back to env)</span>
+                    <span>OpenAI API Key</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.55rem' }}>(optional, falls back to .env)</span>
                   </label>
                   <input
                     type="password"
                     className="form-input"
-                    placeholder={provider === 'openai' ? 'Paste OpenAI sk-... API Key' : 'Paste Google Gemini API Key'}
+                    placeholder="Paste OpenAI sk-... API Key"
                     style={{ padding: '0.3rem 0.45rem', fontSize: '0.7rem', height: 'auto' }}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
